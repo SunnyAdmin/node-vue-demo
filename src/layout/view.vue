@@ -19,7 +19,8 @@
             </Sider>
             <Layout>
                 <Header :style="{padding: 0}" class="layout-header-bar">
-                    <div class="header-title">node测试博客系统</div>
+                    <div class="header-title">{{ title }}</div>
+                    <div style="padding-right: 20px;">{{ username }}</div>
                 </Header>
                 <Breadcrumb :style="{margin: '20px'}">
                     <BreadcrumbItem>{{breadcrumbName}}</BreadcrumbItem>
@@ -37,6 +38,8 @@ export default {
     name: "BaseView",
     data() {
         return {
+            title: "node测试博客系统",
+            username: localStorage.getItem("usernameTest"),
             isCollapsed: false,
             routerList: [],
             breadcrumbName: []
@@ -99,8 +102,12 @@ export default {
     height: 100%;
 }
 .layout-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     background: #fff;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    padding: 0 20px;
 }
 .layout-logo-left {
     width: 90%;

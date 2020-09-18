@@ -1,11 +1,25 @@
 <template>
     <div class="container">
         <div class="head-wrapper">
-            <Button type="primary" @click="handleNewOrEdit(null)">新建博客</Button>
+            <div>
+                <Button type="primary" @click="handleNewOrEdit()">新建博客</Button>
+            </div>
+            <div class="search-wrapper">
+                <div>
+                    <Select v-model="selectUser" style="width:200px;margin-right: 15px;" placeholder="请选择作者">
+                        <Option v-for="item in userList" :value="item.username" :key="item.username">{{ item.username }}</Option>
+                    </Select>
+                    <Input v-model="selectKeyword" placeholder="请输入关键词" style="width: 200px;margin-right: 15px;" />
+                </div>
+                <div>
+                    <Button type="primary" @click="handleSearch" style="margin-right: 15px;">搜索</Button>
+                    <Button @click="handleInit">重置</Button>
+                </div>
+            </div>
         </div>
         <div class="bottom-wrapper">
-            <List item-layout="vertical">
-                <ListItem v-for="item in blogsListData" :key="item.id">
+            <List item-layout="vertical" v-if="blogsList.length">
+                <ListItem v-for="item in blogsList" :key="item.id">
                     <ListItemMeta :avatar="item.avatar" :title="item.title" :description="item.description" />
                     {{ item.content }}
                     <template>
@@ -25,70 +39,42 @@
                     </template>
                 </ListItem>
             </List>
+            <div v-else class="other-content">暂无博客内容</div>
         </div>
     </div>
 </template>
 
 <script>
+import { blogList, delBlog } from "../../api/blog";
+import { userList } from "../../api/user";
+
 export default {
     name: "BlogsList",
     data() {
         return {
-            blogsListData: [
-                {
-                    id: 1,
-                    title: 'This is title 1',
-                    description: 'This is description, this is description, this is description.',
-                    avatar: 'https://dev-file.iviewui.com/userinfoPDvn9gKWYihR24SpgC319vXY8qniCqj4/avatar',
-                    content: 'This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.',
-                    createTime: "2020-09-10 20:03:54"
-                },
-                {
-                    id: 2,
-                    title: 'This is title 2',
-                    description: 'This is description, this is description, this is description.',
-                    avatar: 'https://dev-file.iviewui.com/userinfoPDvn9gKWYihR24SpgC319vXY8qniCqj4/avatar',
-                    content: 'This is the content, this is the content, this is the content, this is the content.',
-                    createTime: "2020-09-10 20:03:54"
-                },
-                {
-                    id: 3,
-                    title: 'This is title 3',
-                    description: 'This is description, this is description, this is description.',
-                    avatar: 'https://dev-file.iviewui.com/userinfoPDvn9gKWYihR24SpgC319vXY8qniCqj4/avatar',
-                    content: 'This is the content, this is the content, this is the content, this is the content.',
-                    createTime: "2020-09-10 20:03:54"
-                },
-                {
-                    id: 4,
-                    title: 'This is title 4',
-                    description: 'This is description, this is description, this is description.',
-                    avatar: 'https://dev-file.iviewui.com/userinfoPDvn9gKWYihR24SpgC319vXY8qniCqj4/avatar',
-                    content: 'This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.This is the content, this is the content, this is the content, this is the content.',
-                    createTime: "2020-09-10 20:03:54"
-                },
-                {
-                    id: 5,
-                    title: 'This is title 5',
-                    description: 'This is description, this is description, this is description.',
-                    avatar: 'https://dev-file.iviewui.com/userinfoPDvn9gKWYihR24SpgC319vXY8qniCqj4/avatar',
-                    content: 'This is the content, this is the content, this is the content, this is the content.',
-                    createTime: "2020-09-10 20:03:54"
-                },
-                {
-                    id: 6,
-                    title: 'This is title 6',
-                    description: 'This is description, this is description, this is description.',
-                    avatar: 'https://dev-file.iviewui.com/userinfoPDvn9gKWYihR24SpgC319vXY8qniCqj4/avatar',
-                    content: 'This is the content, this is the content, this is the content, this is the content.',
-                    createTime: "2020-09-10 20:03:54"
-                }
-            ]
+            selectUser: "",
+            selectKeyword: "",
+            userList: [],
+            blogsList: []
         };
     },
+    created() {
+        this.init();
+    },
     methods: {
+        init() {
+            userList().then(res => {
+                this.userList = res.data;
+            });
+            blogList().then(res => {
+                this.blogsList = res.data;
+            });
+        },
         handleSureDelete(id) {
-            this.$Message.info(`You click ok + ${id}`);
+            delBlog({ id }).then(res => {
+                this.init();
+                this.$Message.success("删除博客成功");
+            });
         },
         handleNewOrEdit(id = null) {
             const pathObj = {
@@ -100,6 +86,19 @@ export default {
                 };
             }
             this.$router.push(pathObj);
+        },
+        handleSearch() {
+            blogList({
+                author: this.selectUser,
+                keyword: this.selectKeyword
+            }).then(res => {
+                this.blogsList = res.data;
+            });
+        },
+        handleInit() {
+            this.selectKeyword = "";
+            this.selectUser = "";
+            this.init();
         }
     }
 }
@@ -115,5 +114,17 @@ export default {
             padding-top: 20px;
             // background: red;
         }
+    }
+    .search-wrapper {
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .other-content {
+        text-align: center;
+        padding-top: 50px;
+        font-weight: 500;
+        font-size: 22px;
     }
 </style>
